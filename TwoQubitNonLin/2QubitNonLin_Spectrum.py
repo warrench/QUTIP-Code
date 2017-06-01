@@ -66,12 +66,12 @@ def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     H_int = -(2*np.pi*EJ)*(phi_R-phi_L).cosm() - (EJ*np.pi)*(phi_R-phi_L)**2 - (2*np.pi*EjR)*phi_R.cosm() - (EjR*np.pi)*(phi_R**2) - (EjL*2*np.pi)*phi_L.cosm() - (EjL*np.pi)*(phi_L**2)
     H = H0 + H_int
     
-    return H
+    return H,H0
     
     
     
 
-phi = np.linspace(-0.5,0.5,1000)
+phi = np.linspace(-0.2124,-0.21235,30)
 
 Eval_mat1 = np.zeros((len(phi),10*10))
 #Eval_mat2 = np.zeros((len(phi),10*10))
@@ -98,13 +98,13 @@ for i,Phi in enumerate(phi):
     if (i %(len(phi)/10))==0:
         print('%f Percent Completed' %(i/len(phi)*100))
     #H, H_LR = TwoQubitNonLin_NoInt(17.0,16.0,74e-15,67e-15,30.0,30.0e-15,Phi)
-    H = TwoQubitNonLin_wInt(17.0,16.0,74e-15,67e-15,30.0,30.0e-15,Phi)
+    H,H0 = TwoQubitNonLin_wInt(17.0,16.0,74e-15,67e-15,30.0,30.0e-15,Phi)
     evals1 = H.eigenenergies()
     #evals2 = H_LR.eigenenergies()
     
-    coupling[i] = qt.expect(H,rho+rho.dag())/2
-    coupling2[i] = qt.expect(H,rho2+rho2.dag())/2
-    coupling3[i] = qt.expect(H,rho3+rho3.dag())/2
+    coupling[i] = qt.expect(H0,rho+rho.dag())/2
+    coupling2[i] = qt.expect(H0,rho2+rho2.dag())/2
+    coupling3[i] = qt.expect(H0,rho3+rho3.dag())/2
     
     Eval_mat1[i,:] = evals1
     #Eval_mat2[i,:] = evals2
@@ -126,8 +126,8 @@ plt.show()
 #    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
 #plt.show()
 
-#for i,coup in enumerate(coupling):
-#    print(i,coup,phi[i])
+for i,coup in enumerate(coupling2):
+    print(i,coup,phi[i])
 
 plt.plot(phi,coupling/(2*np.pi))
 plt.plot(phi,coupling2/(2*np.pi))
