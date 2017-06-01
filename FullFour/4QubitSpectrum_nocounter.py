@@ -52,10 +52,10 @@ def QubitHam4_MatterSitesQubits_nocounter_rot(wq1,wq2,lambda1,lambda2,EjL,EjR,CL
     
     return H
 
-H = QubitHam4_MatterSitesQubits_nocounter_rot(6,6.5,0.1,0.1,17.0,16.0,74e-15,67e-15,30.0,30.0e-15,-0.212381034483)
+H = QubitHam4_MatterSitesQubits_nocounter_rot(6,6,0.1,0.1,17.0,16.0,74e-15,67e-15,30.0,30.0e-15,-0.212381034483)
 H.tidyup(atol=1e-1)
 psi_0 = qt.tensor([qt.basis(2,1),qt.basis(n,0),qt.basis(n,1),qt.basis(2,0)])
-tlist = np.linspace(0,20,300)
+tlist = np.linspace(0,25,500)
 
 #qt.matrix_histogram(H)
 #plt.show()
@@ -69,9 +69,15 @@ g_osc = qt.fock_dm(n,0)
 e_osc = qt.fock_dm(n,1)
 f_osc = qt.fock_dm(n,2)
 
+
+PG = qt.tensor([g_qb,g_osc,g_osc,g_qb])
+
 P1 = qt.tensor([e_qb,g_osc,e_osc,g_qb])
 P2 = qt.tensor([g_qb,e_osc,e_osc,g_qb])
 P3 = qt.tensor([g_qb,e_osc,g_osc,e_qb])
+P4 = qt.tensor([g_qb,g_osc,e_osc,e_qb])
+P5 = qt.tensor([g_qb,f_osc,g_osc,g_qb])
+P6 = qt.tensor([g_qb,g_osc,f_osc,g_qb])
 
 #P_e1 = qt.tensor([e_qb,qt.qeye(n),qt.qeye(n),qt.qeye(2)])
 #P_e2 = qt.tensor([qt.qeye(2),qt.qeye(n),qt.qeye(n),e_qb])
@@ -84,43 +90,54 @@ P3 = qt.tensor([g_qb,e_osc,g_osc,e_qb])
 e_ops.append(P1)
 e_ops.append(P2)
 e_ops.append(P3)
-#e_ops.append(P_1R)
+e_ops.append(P4)
+e_ops.append(P5)
+e_ops.append(P6)
 
-xvec = np.linspace(-2,2,100)
-#result = qt.mesolve(H,psi_0,tlist,[],e_ops,progress_bar=True)
-result = qt.mesolve(H,psi_0,tlist,[],[],progress_bar=True)
-#plt.plot(result.times,result.expect[0])
-#plt.plot(result.times,result.expect[1])
-#plt.plot(result.times,result.expect[2])
-##plt.plot(result.times,result.expect[3])
-#plt.xlabel(r'Time')
-#plt.ylabel(r'Occupation Probability')
-#plt.title(r'Initial State |egeg>')
+#e_ops.append(PG)
+
+#xvec = np.linspace(-2,2,100)
+result = qt.mesolve(H,psi_0,tlist,[],e_ops,progress_bar=True)
+#result = qt.mesolve(H,psi_0,tlist,[],[],progress_bar=True)
+plt.plot(result.times,result.expect[0])
+plt.plot(result.times,result.expect[1])
+plt.plot(result.times,result.expect[2])
+plt.plot(result.times,result.expect[3])
+plt.plot(result.times,result.expect[4])
+plt.plot(result.times,result.expect[5])
+
+plt.xlabel(r'Time')
+plt.ylabel(r'Occupation Probability')
+plt.title(r'Initial State |egeg>')
 #plt.legend([r'|egeg>',r'|geeg>',r'|gege>'])
-#plt.show()
+plt.legend([r'|egeg>',r'|geeg>',r'|gege>',r'|ggee>',r'|gfgg>',r'|ggfg>'])
+plt.show()
 
-def compute_wigner(rho):
-    return qt.wigner(rho,xvec,xvec)
 
-W_list = qt.parfor(compute_wigner,result.states)
 
-import matplotlib.animation as ani
-import matplotlib.colors as clr
-import types
+#qt.matrix_histogram(H)
+#def compute_wigner(rho):
+#    return qt.wigner(rho,xvec,xvec)
 
-fname = "Evolve.gif"
-fig, ax = plt.subplots(1,1,figsize=(12,5))
-def animate(n):
-    print(n)
-    ax[0].cla(); ax[0].set_aspect("equal"); ax[0].tick_params(labelsize=14)
-    ax[0].set_title("Time: %.2f"%(result.times[n]),fontsize=14)
-    ax[0].set_xlabel(r'$x$',fontsize=14); ax[0].set_ylabel(r'$p$',fontsize=14)
-    im = ax[0].contourf(xvec,xvec,W_list[n],100,norm=clr.Normalize(-0.25,0.25),cmap=plt.get_cmap("RdBu"))
-    def setvisible(self,vis):
-        for c in self.collections: c.set_visible(vis)
-    im.set_visible = types.MethodType(setvisible,im)
-anim = ani.FuncAnimation(fig,animate,frames=len(result.times))
-anim.save(fname,writer="imagemagick",fps=20)
+#W_list = qt.parfor(compute_wigner,result.states)
+#
+#import matplotlib.animation as ani
+#import matplotlib.colors as clr
+#import types
+
+#fname = "Evolve.gif"
+#fig, ax = plt.subplots(1,1,figsize=(12,5))
+#def animate(n):
+#    print(n)
+#    ax[0].cla(); ax[0].set_aspect("equal"); ax[0].tick_params(labelsize=14)
+#    ax[0].set_title("Time: %.2f"%(result.times[n]),fontsize=14)
+#    ax[0].set_xlabel(r'$x$',fontsize=14); ax[0].set_ylabel(r'$p$',fontsize=14)
+#    im = ax[0].contourf(xvec,xvec,W_list[n],100,norm=clr.Normalize(-0.25,0.25),cmap=plt.get_cmap("RdBu"))
+#    def setvisible(self,vis):
+#        for c in self.collections: c.set_visible(vis)
+#    im.set_visible = types.MethodType(setvisible,im)
+#anim = ani.FuncAnimation(fig,animate,frames=len(result.times))
+#anim.save(fname,writer="imagemagick",fps=20)
 #phi = np.linspace(-0.5,0.5,100)
 #
 #Eval_mat1 = np.zeros((len(phi),2*2*n*n))

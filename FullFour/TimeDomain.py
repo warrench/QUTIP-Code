@@ -49,7 +49,7 @@ def QubitHam4_MatterSitesQubits(wq1,wq2,lambda1,lambda2,EjL,EjR,CL,CR,Ej,Cj,phi=
     return H
 
 
-H = QubitHam4_MatterSitesQubits(5,5,0.1,0.1,17.0,16.0,74e-15,67e-15,30.0,30.0e-15,-0.212381034483)
+H = QubitHam4_MatterSitesQubits(6,6,0.1,0.1,17.0,16.0,74e-15,67e-15,30.0,30.0e-15,-0.212381034483)
 psi_0 = qt.tensor([qt.basis(2,1),qt.basis(n,0),qt.basis(n,1),qt.basis(2,0)])
 tlist = np.linspace(0,50,1000)
 
@@ -65,14 +65,9 @@ P_osc = e_osc*e_osc.dag()
 P_osc1 = qt.tensor([qt.qeye(2),P_osc,qt.qeye(n),qt.qeye(2)])
 P_osc2 = qt.tensor([qt.qeye(2),qt.qeye(n),P_osc,qt.qeye(2)])
 
-
-
-e_ops.append(P_eqb1)
-e_ops.append(P_eqb2)
 e_ops.append(P_eqb1*P_osc2)
-e_ops.append(P_eqb2*P_osc1)
-e_ops.append(P_osc2)
-e_ops.append(P_osc1)
+
+
 result = qt.mesolve(H,psi_0,tlist,[],e_ops)
 
 def func(t,A,f,phi,C):
@@ -80,9 +75,9 @@ def func(t,A,f,phi,C):
 def func2(t,A,f,phi,C):
     return A*np.cos(2*np.pi*f*t-phi*np.pi/180)**4.0+C
 
-#popt, pcov = opt.curve_fit(func,result.times,result.expect[2],bounds=([0.2,0,0,0],[1.0,0.05,360,1]))
+popt, pcov = opt.curve_fit(func,result.times,result.expect[2],bounds=([0.2,0,0,0],[1.0,0.05,360,1]))
 #print(popt)
-#popt2, pcov2 = opt.curve_fit(func2,result.times,result.expect[2],bounds=([0.2,0,0,0],[1.0,0.05,360,1]))
+popt2, pcov2 = opt.curve_fit(func2,result.times,result.expect[2],bounds=([0.2,0,0,0],[1.0,0.05,360,1]))
 
 plt.plot(result.times,result.expect[0])
 plt.plot(result.times,result.expect[1])
