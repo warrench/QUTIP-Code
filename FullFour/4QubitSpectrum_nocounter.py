@@ -57,8 +57,7 @@ H.tidyup(atol=1e-1)
 psi_0 = qt.tensor([qt.basis(2,1),qt.basis(n,0),qt.basis(n,1),qt.basis(2,0)])
 tlist = np.linspace(0,25,500)
 
-#qt.matrix_histogram(H)
-#plt.show()
+
 
 e_ops = []
 

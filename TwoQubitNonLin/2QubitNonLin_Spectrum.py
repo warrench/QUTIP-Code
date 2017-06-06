@@ -9,9 +9,9 @@ import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
 
-
+n = 5 #number of oscillator states
 def TwoQubitNonLin_NoInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
-    n = 10                #number of oscillator states
+               
     
     e_charge = 1.602e-19 #electron charge
     h = 6.626e-34        #planck's constant
@@ -32,12 +32,12 @@ def TwoQubitNonLin_NoInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     H_LR = (((2*Cj*C_det*C_to_GHz/np.sqrt(eps_L*eps_R)) * (2*np.pi))*(a.dag()*b - a.dag()*b.dag() + a*b.dag() - a*b)
             - (EJ*np.sqrt(eps_L*eps_R)/2 * (2*np.pi))*(a.dag()*b + a.dag()*b.dag() + a*b.dag() + a*b))
     
+    H0 = H_L + H_R
     H = H_L + H_R + H_LR
     
-    return H, H_LR
+    return H, H0, H_LR
 
 def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
-    n = 10                #number of oscillator states
     
     e_charge = 1.602e-19 #electron charge
     h = 6.626e-34        #planck's constant
@@ -53,8 +53,8 @@ def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     a = qt.tensor(qt.destroy(n),qt.qeye(n))
     b = qt.tensor(qt.qeye(n),qt.destroy(n))
     
-    phi_L = np.sqrt(eps_L/2.0)*(a+a.dag())
-    phi_R = np.sqrt(eps_R/2.0)*(b+b.dag())
+    #phi_L = np.sqrt(eps_L/2.0)*(a+a.dag())
+    #phi_R = np.sqrt(eps_R/2.0)*(b+b.dag())
     
     H_L = ((EJ+EjL)*eps_L * (2*np.pi))*a.dag()*a
     H_R = ((EJ+EjR)*eps_R * (2*np.pi))*b.dag()*b
@@ -63,78 +63,170 @@ def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     
     H0 = H_L + H_R + H_LR
     
-    H_int = -(2*np.pi*EJ)*(phi_R-phi_L).cosm() - (EJ*np.pi)*(phi_R-phi_L)**2 - (2*np.pi*EjR)*phi_R.cosm() - (EjR*np.pi)*(phi_R**2) - (EjL*2*np.pi)*phi_L.cosm() - (EjL*np.pi)*(phi_L**2)
+    H_int1 = -(2*np.pi)*(np.exp(-eps_L/4)*EjL*eps_L**2/16.0)*((a.dag()**2)*(a**2))
+    H_int2 = -(2*np.pi)*(np.exp(-eps_R/4)*EjR*eps_R**2/16.0)*((b.dag()**2)*(b**2))
+    H_int3 = -(2*np.pi)*(np.exp(-np.sqrt(eps_L*eps_R)/4)/16.0)*((eps_L**2)*(a.dag()**2)*(a**2) + (eps_R**2)*(b.dag()**2)*(b**2) + 4*eps_L*eps_R*(a.dag()*a)*(b.dag()*b) )
+    H_int = H_int1 + H_int2 + H_int3
+    
+    #H_int = -(2*np.pi*EJ)*(phi_R-phi_L).cosm() - (EJ*np.pi)*(phi_R-phi_L)**2 - (2*np.pi*EjR)*phi_R.cosm() - (EjR*np.pi)*(phi_R**2) - (EjL*2*np.pi)*phi_L.cosm() - (EjL*np.pi)*(phi_L**2)
     H = H0 + H_int
     
-    return H,H0
+    return H,H0,H_int
     
     
     
 
-phi = np.linspace(-0.2124,-0.21235,30)
+phi = np.linspace(-0.5,0.5,501)
 
-Eval_mat1 = np.zeros((len(phi),10*10))
-#Eval_mat2 = np.zeros((len(phi),10*10))
+
+gg = qt.tensor(qt.basis(n,0),qt.basis(n,0))
+eg = qt.tensor(qt.basis(n,1),qt.basis(n,0))
+ge = qt.tensor(qt.basis(n,0),qt.basis(n,1))
+ee = qt.tensor(qt.basis(n,1),qt.basis(n,1))
+
+basislist = [gg,eg,ge,ee]
+
+Eval_mat1 = np.zeros((len(phi),n*n))
+Eval_mat2 = np.zeros((len(phi),n*n))
 coupling = np.zeros(len(phi))
 coupling2 = np.zeros(len(phi))
 coupling3 = np.zeros(len(phi))
+coupling4 = np.zeros(len(phi))
 
-state_eg = qt.tensor(qt.basis(10,1),qt.basis(10,0))
-state_ge = qt.tensor(qt.basis(10,0),qt.basis(10,1))
-
-state_ef = qt.tensor(qt.basis(10,1),qt.basis(10,2))
-state_fe = qt.tensor(qt.basis(10,2),qt.basis(10,1))
-
-state_gf = qt.tensor(qt.basis(10,0),qt.basis(10,2))
-state_fg = qt.tensor(qt.basis(10,2),qt.basis(10,0))
-
-
-rho = state_ge*state_eg.dag()
-rho2 = state_fe*state_ef.dag()
-rho3 = state_fg*state_gf.dag()
-
+EvecMat_gnd = np.zeros((len(phi),4))
+EvecMat_first = np.zeros((len(phi),4))
+EvecMat_second = np.zeros((len(phi),4))
 
 for i,Phi in enumerate(phi):
-    if (i %(len(phi)/10))==0:
-        print('%f Percent Completed' %(i/len(phi)*100))
-    #H, H_LR = TwoQubitNonLin_NoInt(17.0,16.0,74e-15,67e-15,30.0,30.0e-15,Phi)
-    H,H0 = TwoQubitNonLin_wInt(17.0,16.0,74e-15,67e-15,30.0,30.0e-15,Phi)
-    evals1 = H.eigenenergies()
-    #evals2 = H_LR.eigenenergies()
+    if (i %((len(phi)-1)/10))==0:
+        print('%f Percent Completed' %(i/(len(phi)-1)*100))
+    #H, H0, Hint = TwoQubitNonLin_NoInt(17.0,16.0,65e-15,48.8e-15,20.0,40.0e-15,Phi)
     
-    coupling[i] = qt.expect(H0,rho+rho.dag())/2
-    coupling2[i] = qt.expect(H0,rho2+rho2.dag())/2
-    coupling3[i] = qt.expect(H0,rho3+rho3.dag())/2
+    H,H0,Hint = TwoQubitNonLin_wInt(17.0,16.0,65e-15,48.8e-15,20.0,40.0e-15,Phi)
+#    H.tidyup(atol=1e-4)
+#    Hint.tidyup(atol=1e-4)
+    evals1 = H.eigenenergies()
+    evals2,evecs = H0.eigenstates()    
+        
+    gnd = evecs[0]
+#    gnd.tidyup(atol=1e-3)
+#    gnd.unit()
+    first = evecs[1]
+#    first.tidyup(atol=1e-3)
+#    first.unit()
+    second = evecs[2]
+#    second.tidyup(atol=1e-3)
+#    second.unit()
+    third = evecs[3]
+#    third.tidyup(atol=1e-3)
+#    third.unit()
+    fourth = evecs[4]
+#    fourth.tidyup(atol=1e-3)
+#    fourth.unit()
+    
+    gnd_to_first = first*gnd.dag()
+    gnd_to_second = second*gnd.dag()
+    first_to_second = second*first.dag()    
+    gnd_to_third = third*gnd.dag()
+    first_to_third = third*first.dag()
+    second_to_third = third*second.dag()
+    gnd_to_fourth = fourth*gnd.dag()
+    first_to_fourth = fourth*first.dag()
+    second_to_fourth = fourth*second.dag()
+    third_to_fourth = fourth*third.dag()
+    
+    for j in range(4):
+        Number_gnd = basislist[j].dag()*gnd
+        Number_first = basislist[j].dag()*first
+        Number_second = basislist[j].dag()*second
+        EvecMat_gnd[i,j] = np.abs(Number_gnd[0,0])**2
+        EvecMat_first[i,j] = np.abs(Number_first[0,0])**2
+        EvecMat_second[i,j] = np.abs(Number_second[0,0])**2    
+    
+#    coupling[i] = np.abs(qt.expect(Hint,gnd_to_fourth))
+#    coupling2[i] = np.abs(qt.expect(Hint,first_to_fourth))
+#    coupling3[i] = np.abs(qt.expect(Hint,second_to_fourth))
+#    coupling4[i] = np.abs(qt.expect(Hint,third_to_fourth))
+    coupling[i] = np.abs(qt.expect(Hint,gnd_to_third))
+    coupling2[i] = np.abs(qt.expect(Hint,first_to_third))
+    coupling3[i] = np.abs(qt.expect(Hint,second_to_third))
+#    coupling[i] = np.abs(qt.expect(Hint,gnd_to_first))
+#    coupling2[i] = np.abs(qt.expect(Hint,first_to_second))
+#    coupling3[i] = np.abs(qt.expect(Hint,gnd_to_second))
     
     Eval_mat1[i,:] = evals1
     #Eval_mat2[i,:] = evals2
-    
-for i in range(3):
-    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
-plt.ylabel(r'Frequency [GHz]')
-plt.xlabel(r'$\frac{\Phi}{2 \pi}$')
-plt.title(r'Transition Energies of Nonlinear Coupling')
-plt.show()
+
+ 
+#for i in range(10):
+#    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
+#plt.ylabel(r'Frequency [GHz]')
+#plt.xlabel(r'$\frac{\Phi}{2 \pi}$')
+#plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0}$')
+#plt.show()
+
 for i in range(6):
     plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
-
 plt.ylabel(r'Freqnecy [GHz]')
 plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.title(r'Transition Energies of Nonlinear Coupling')
+plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0} + H_{int}$')
+plt.grid()
 plt.show()
 #for i in range(6):
 #    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
 #plt.show()
 
-for i,coup in enumerate(coupling2):
-    print(i,coup,phi[i])
+#for i,coup in enumerate(coupling2):
+#    print(i,coup,phi[i])
 
 plt.plot(phi,coupling/(2*np.pi))
-plt.plot(phi,coupling2/(2*np.pi))
 plt.plot(phi,coupling3/(2*np.pi))
+plt.plot(phi,coupling2/(2*np.pi))
+
+#plt.plot(phi,coupling4/(2*np.pi))
 plt.xlabel(r'$\frac{\Phi}{2\pi}$')
 plt.ylabel(r'Frequency [GHz]')
-plt.title(r'Mode Mixing Interaction')
-plt.legend([r'ge $\rightarrow$ eg',r'ef $\rightarrow$ fe',r'gf $\rightarrow$ fg' ])
+plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{3}>$',
+            r'$|\psi_{1}>\rightarrow|\psi_{3}>$',
+            r'$|\psi_{2}>\rightarrow|\psi_{3}>$'], loc='upper right')
+plt.title(r'$|<\psi_i|H_{int}|\psi_j>|$')
 plt.grid()
 plt.show()
+#plt.plot(phi,coupling2/(2*np.pi))
+#plt.plot(phi,coupling3/(2*np.pi))
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.ylabel(r'Frequency [GHz]')
+#
+#plt.legend([r'ge $\rightarrow$ eg',r'ef $\rightarrow$ fe',r'gf $\rightarrow$ fg' ])
+#plt.grid()
+#plt.show()
+
+for i in range(4):
+    plt.plot(phi,EvecMat_gnd[:,i])
+plt.grid()
+plt.title(r'Composition of Ground State')
+plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+plt.ylabel(r'Occupation Probability')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.show()
+
+for i in range(4):
+    plt.plot(phi,EvecMat_first[:,i])
+plt.title(r'Composition of First Excited State')
+plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.ylabel(r'Occupation Probability')
+plt.grid()
+plt.show()
+
+for i in range(4):
+    plt.plot(phi,EvecMat_second[:,i])
+plt.title(r'Composition of Second Excited State')
+plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.ylabel(r'Occupation Probability')
+plt.grid()
+plt.show()
+
+#for i,coup in enumerate(EvecMat_first[:,2]):
+#    print(i,coup,phi[i])
