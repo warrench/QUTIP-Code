@@ -9,6 +9,10 @@ import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
 
+#==============================================================================
+#                         Define Two Qubit Hamiltonian
+#==============================================================================
+
 n = 5 #number of oscillator states
 def TwoQubitNonLin_NoInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
                
@@ -72,10 +76,19 @@ def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     H = H0 + H_int
     
     return H,H0,H_int
+#==============================================================================
+#------------------------------------------------------------------------------    
+#==============================================================================
+#                         Creating Basic Operators
+#==============================================================================    
     
-    
-    
+a = qt.tensor(qt.destroy(n),qt.qeye(n))
+b = qt.tensor(qt.qeye(n),qt.destroy(n))
+Hopping_a = a+a.dag()               #   (a + adag) X I
+Hopping_b = b+b.dag()               #   I X (b + bdag)
+Hopping = Hopping_a + Hopping_b
 
+    
 phi = np.linspace(-0.5,0.5,501)
 
 
@@ -97,6 +110,11 @@ EvecMat_gnd = np.zeros((len(phi),4))
 EvecMat_first = np.zeros((len(phi),4))
 EvecMat_second = np.zeros((len(phi),4))
 
+#==============================================================================
+#------------------------------------------------------------------------------
+#==============================================================================
+#                         Static Hamiltonian Spectrum
+#==============================================================================
 for i,Phi in enumerate(phi):
     if (i %((len(phi)-1)/10))==0:
         print('%f Percent Completed' %(i/(len(phi)-1)*100))
@@ -147,17 +165,20 @@ for i,Phi in enumerate(phi):
 #    coupling2[i] = np.abs(qt.expect(Hint,first_to_fourth))
 #    coupling3[i] = np.abs(qt.expect(Hint,second_to_fourth))
 #    coupling4[i] = np.abs(qt.expect(Hint,third_to_fourth))
-    coupling[i] = np.abs(qt.expect(Hint,gnd_to_third))
-    coupling2[i] = np.abs(qt.expect(Hint,first_to_third))
-    coupling3[i] = np.abs(qt.expect(Hint,second_to_third))
-#    coupling[i] = np.abs(qt.expect(Hint,gnd_to_first))
-#    coupling2[i] = np.abs(qt.expect(Hint,first_to_second))
-#    coupling3[i] = np.abs(qt.expect(Hint,gnd_to_second))
+#    coupling[i] = np.abs(qt.expect(Hint,gnd_to_third))
+#    coupling2[i] = np.abs(qt.expect(Hint,first_to_third))
+#    coupling3[i] = np.abs(qt.expect(Hint,second_to_third))
+    coupling[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
+    coupling2[i] = np.abs(qt.expect(Hopping_b,first_to_second))
+    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
     
     Eval_mat1[i,:] = evals1
     #Eval_mat2[i,:] = evals2
 
- 
+#         ===========================================================
+#                            Plotting Energy Levels
+#         ===========================================================
+
 #for i in range(10):
 #    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
 #plt.ylabel(r'Frequency [GHz]')
@@ -165,68 +186,67 @@ for i,Phi in enumerate(phi):
 #plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0}$')
 #plt.show()
 
-for i in range(6):
-    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
-plt.ylabel(r'Freqnecy [GHz]')
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0} + H_{int}$')
-plt.grid()
-plt.show()
+#for i in range(6):
+#    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
+#plt.ylabel(r'Freqnecy [GHz]')
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0} + H_{int}$')
+#plt.grid()
+#plt.show()
 #for i in range(6):
 #    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
 #plt.show()
 
-#for i,coup in enumerate(coupling2):
-#    print(i,coup,phi[i])
+#         ===========================================================
+#                               Plotting Coupling
+#         ===========================================================
 
-plt.plot(phi,coupling/(2*np.pi))
-plt.plot(phi,coupling3/(2*np.pi))
-plt.plot(phi,coupling2/(2*np.pi))
-
-#plt.plot(phi,coupling4/(2*np.pi))
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.ylabel(r'Frequency [GHz]')
-plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{3}>$',
-            r'$|\psi_{1}>\rightarrow|\psi_{3}>$',
-            r'$|\psi_{2}>\rightarrow|\psi_{3}>$'], loc='upper right')
-plt.title(r'$|<\psi_i|H_{int}|\psi_j>|$')
-plt.grid()
-plt.show()
-#plt.plot(phi,coupling2/(2*np.pi))
+#plt.plot(phi,coupling/(2*np.pi))
 #plt.plot(phi,coupling3/(2*np.pi))
+#plt.plot(phi,coupling2/(2*np.pi))
+#plt.plot(phi,coupling4/(2*np.pi))
 #plt.xlabel(r'$\frac{\Phi}{2\pi}$')
 #plt.ylabel(r'Frequency [GHz]')
-#
-#plt.legend([r'ge $\rightarrow$ eg',r'ef $\rightarrow$ fe',r'gf $\rightarrow$ fg' ])
+#plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{1}>$',
+#            r'$|\psi_{1}>\rightarrow|\psi_{2}>$',
+#            r'$|\psi_{g}>\rightarrow|\psi_{2}>$'], loc='upper right')
+#plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
 #plt.grid()
 #plt.show()
 
-for i in range(4):
-    plt.plot(phi,EvecMat_gnd[:,i])
-plt.grid()
-plt.title(r'Composition of Ground State')
-plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
-plt.ylabel(r'Occupation Probability')
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.show()
+#         ===========================================================
+#                           Plotting Eigenstate Composition
+#         ===========================================================
 
-for i in range(4):
-    plt.plot(phi,EvecMat_first[:,i])
-plt.title(r'Composition of First Excited State')
-plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.ylabel(r'Occupation Probability')
-plt.grid()
-plt.show()
+#for i in range(4):
+#    plt.plot(phi,EvecMat_gnd[:,i])
+#plt.grid()
+#plt.title(r'Composition of Ground State')
+#plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+#plt.ylabel(r'Occupation Probability')
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.show()
+#
+#for i in range(4):
+#    plt.plot(phi,EvecMat_first[:,i])
+#plt.title(r'Composition of First Excited State')
+#plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.ylabel(r'Occupation Probability')
+#plt.grid()
+#plt.show()
+#
+#for i in range(4):
+#    plt.plot(phi,EvecMat_second[:,i])
+#plt.title(r'Composition of Second Excited State')
+#plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.ylabel(r'Occupation Probability')
+#plt.grid()
+#plt.show()
 
-for i in range(4):
-    plt.plot(phi,EvecMat_second[:,i])
-plt.title(r'Composition of Second Excited State')
-plt.legend([r'|gg>',r'|eg>',r'|ge>',r'|ee>'])
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.ylabel(r'Occupation Probability')
-plt.grid()
-plt.show()
-
-#for i,coup in enumerate(EvecMat_first[:,2]):
-#    print(i,coup,phi[i])
+#==============================================================================
+#------------------------------------------------------------------------------
+#==============================================================================
+#                        Time Domain Measurements
+#==============================================================================
