@@ -9,11 +9,15 @@ import qutip as qt
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+#params = {'text.usetex': True,'text.latex.preamble': r'\usepackage{physics}'}
+#plt.rcParams.update(params)
+
 #==============================================================================
 #                         Define Two Qubit Hamiltonian
 #==============================================================================
 
-n = 5 #number of oscillator states
+n = 4 #number of oscillator states
 def TwoQubitNonLin_NoInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
                
     
@@ -62,6 +66,8 @@ def TwoQubitNonLin_wInt(EjL,EjR,CL,CR,Ej,Cj,phi=0):
     
     H_L = ((EJ+EjL)*eps_L * (2*np.pi))*a.dag()*a
     H_R = ((EJ+EjR)*eps_R * (2*np.pi))*b.dag()*b
+#    H_LR = (((2*Cj*C_det*C_to_GHz/np.sqrt(eps_L*eps_R)) * (2*np.pi))*(a.dag()*b + a*b.dag())
+#            - (EJ*np.sqrt(eps_L*eps_R)/2 * (2*np.pi))*(a.dag()*b + a*b.dag()))
     H_LR = (((2*Cj*C_det*C_to_GHz/np.sqrt(eps_L*eps_R)) * (2*np.pi))*(a.dag()*b - a.dag()*b.dag() + a*b.dag() - a*b)
             - (EJ*np.sqrt(eps_L*eps_R)/2 * (2*np.pi))*(a.dag()*b + a.dag()*b.dag() + a*b.dag() + a*b))
     
@@ -92,23 +98,24 @@ Hopping = Hopping_a + Hopping_b
 phi = np.linspace(-0.5,0.5,501)
 
 
-gg = qt.tensor(qt.basis(n,0),qt.basis(n,0))
-eg = qt.tensor(qt.basis(n,1),qt.basis(n,0))
-ge = qt.tensor(qt.basis(n,0),qt.basis(n,1))
-ee = qt.tensor(qt.basis(n,1),qt.basis(n,1))
+#gg = qt.tensor(qt.basis(n,0),qt.basis(n,0))
+#eg = qt.tensor(qt.basis(n,1),qt.basis(n,0))
+#ge = qt.tensor(qt.basis(n,0),qt.basis(n,1))
+#ee = qt.tensor(qt.basis(n,1),qt.basis(n,1))
 
-basislist = [gg,eg,ge,ee]
+#basislist = [gg,eg,ge,ee]
 
 Eval_mat1 = np.zeros((len(phi),n*n))
 Eval_mat2 = np.zeros((len(phi),n*n))
-coupling = np.zeros(len(phi))
+coupling1 = np.zeros(len(phi))
 coupling2 = np.zeros(len(phi))
 coupling3 = np.zeros(len(phi))
 coupling4 = np.zeros(len(phi))
 
-EvecMat_gnd = np.zeros((len(phi),4))
-EvecMat_first = np.zeros((len(phi),4))
-EvecMat_second = np.zeros((len(phi),4))
+
+#EvecMat_gnd = np.zeros((len(phi),4))
+#EvecMat_first = np.zeros((len(phi),4))
+#EvecMat_second = np.zeros((len(phi),4))
 
 #==============================================================================
 #------------------------------------------------------------------------------
@@ -121,45 +128,49 @@ for i,Phi in enumerate(phi):
     #H, H0, Hint = TwoQubitNonLin_NoInt(17.0,16.0,65e-15,48.8e-15,20.0,40.0e-15,Phi)
     
     H,H0,Hint = TwoQubitNonLin_wInt(17.0,16.0,65e-15,48.8e-15,20.0,40.0e-15,Phi)
-#    H.tidyup(atol=1e-4)
+    H.tidyup(atol=1e-12)
 #    Hint.tidyup(atol=1e-4)
     evals1 = H.eigenenergies()
     evals2,evecs = H0.eigenstates()    
         
     gnd = evecs[0]
-#    gnd.tidyup(atol=1e-3)
-#    gnd.unit()
+###    gnd.tidyup(atol=1e-3)
+###    gnd.unit()
     first = evecs[1]
-#    first.tidyup(atol=1e-3)
-#    first.unit()
+###    first.tidyup(atol=1e-3)
+###    first.unit()
     second = evecs[2]
-#    second.tidyup(atol=1e-3)
-#    second.unit()
+##    second.tidyup(atol=1e-3)
+##    second.unit()
     third = evecs[3]
-#    third.tidyup(atol=1e-3)
-#    third.unit()
+##    third.tidyup(atol=1e-3)
+##    third.unit()
     fourth = evecs[4]
-#    fourth.tidyup(atol=1e-3)
-#    fourth.unit()
+##    fourth.tidyup(atol=1e-3)
+##    fourth.unit()
     
     gnd_to_first = first*gnd.dag()
     gnd_to_second = second*gnd.dag()
-    first_to_second = second*first.dag()    
-    gnd_to_third = third*gnd.dag()
+#    first_to_second = second*first.dag()    
+#    gnd_to_third = third*gnd.dag()
     first_to_third = third*first.dag()
-    second_to_third = third*second.dag()
-    gnd_to_fourth = fourth*gnd.dag()
-    first_to_fourth = fourth*first.dag()
+#    second_to_third = third*second.dag()
+#    gnd_to_fourth = fourth*gnd.dag()
+#    first_to_fourth = fourth*first.dag()
     second_to_fourth = fourth*second.dag()
-    third_to_fourth = fourth*third.dag()
+#    third_to_fourth = fourth*third.dag()
     
-    for j in range(4):
-        Number_gnd = basislist[j].dag()*gnd
-        Number_first = basislist[j].dag()*first
-        Number_second = basislist[j].dag()*second
-        EvecMat_gnd[i,j] = np.abs(Number_gnd[0,0])**2
-        EvecMat_first[i,j] = np.abs(Number_first[0,0])**2
-        EvecMat_second[i,j] = np.abs(Number_second[0,0])**2    
+#    for j in range(4):
+#        Number_gnd = basislist[j].dag()*gnd
+#        Number_first = basislist[j].dag()*first
+#        Number_second = basislist[j].dag()*second
+#        EvecMat_gnd[i,j] = np.abs(Number_gnd[0,0])**2
+#        EvecMat_first[i,j] = np.abs(Number_first[0,0])**2
+#        EvecMat_second[i,j] = np.abs(Number_second[0,0])**2
+
+    Eval_mat1[i,:] = evals1
+    Eval_mat2[i,:] = evals1
+
     
 #    coupling[i] = np.abs(qt.expect(Hint,gnd_to_fourth))
 #    coupling2[i] = np.abs(qt.expect(Hint,first_to_fourth))
@@ -168,43 +179,83 @@ for i,Phi in enumerate(phi):
 #    coupling[i] = np.abs(qt.expect(Hint,gnd_to_third))
 #    coupling2[i] = np.abs(qt.expect(Hint,first_to_third))
 #    coupling3[i] = np.abs(qt.expect(Hint,second_to_third))
-    coupling[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
-    coupling2[i] = np.abs(qt.expect(Hopping_b,first_to_second))
-    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
+#    coupling[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
+#    coupling2[i] = np.abs(qt.expect(Hopping_b,first_to_second))
+#    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
+    coupling1[i] = np.abs(qt.expect(Hopping_a,gnd_to_first))
+    coupling2[i] = np.abs(qt.expect(Hopping_a,gnd_to_second))
+    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
+    coupling4[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
     
-    Eval_mat1[i,:] = evals1
-    #Eval_mat2[i,:] = evals2
-
-#         ===========================================================
-#                            Plotting Energy Levels
-#         ===========================================================
-
-#for i in range(10):
+    if coupling1[i]/(2*np.pi) < 0.04:
+        Eval_mat1[i,1] = np.nan
+    if coupling2[i]/(2*np.pi) < 0.04:
+        Eval_mat1[i,2] = np.nan
+    if coupling3[i]/(2*np.pi) < 0.04:
+        Eval_mat2[i,1] = np.nan
+    if coupling4[i]/(2*np.pi) < 0.04:
+        Eval_mat2[i,2] = np.nan
+#
+##         ===========================================================
+##                            Plotting Energy Levels
+##         ===========================================================
+#
+#for i in range(4):
 #    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
 #plt.ylabel(r'Frequency [GHz]')
 #plt.xlabel(r'$\frac{\Phi}{2 \pi}$')
 #plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0}$')
 #plt.show()
+#
+for i in range(3):
+    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
+plt.ylabel(r'Freqnecy [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'Transition Energies of Nonlinear Coupling, $<\psi_{j}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_i>$')
+plt.grid()
+plt.show()
 
-#for i in range(6):
-#    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
-#plt.ylabel(r'Freqnecy [GHz]')
-#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-#plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0} + H_{int}$')
-#plt.grid()
+for i in range(3):
+    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
+plt.ylabel(r'Freqnecy [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'Transition Energies of Nonlinear Coupling, $|<\psi_{i}|\mathbb{1}\otimes(b+b^{\dagger})|\psi_{j}>|$')
+plt.grid()
+plt.show()
+
+#for i in range(n*n-1):
+#    plt.plot(phi,coupling_mat1[:,i]/(2*np.pi))
 #plt.show()
-#for i in range(6):
-#    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
+#
+#for i in range(n*n-1):
+#    plt.plot(phi,coupling_mat2[:,i]/(2*np.pi))
 #plt.show()
 
-#         ===========================================================
-#                               Plotting Coupling
-#         ===========================================================
+#for i in range(n**2*(n**2-1)):
+#    plt.plot(phi,coupling_mat[]
+#
+##         ===========================================================
+##                               Plotting Coupling
+##         ===========================================================
+#
+plt.plot(phi,coupling1/(2*np.pi))
+plt.plot(phi,coupling2/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$<\psi_{i}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.04,0.04],'k')
+plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',r'$|\psi_{g}> \rightarrow |\psi_{2}>$',r'Threshold'],loc='upper right')
+plt.grid()
+plt.show()
 
-#plt.plot(phi,coupling/(2*np.pi))
-#plt.plot(phi,coupling3/(2*np.pi))
-#plt.plot(phi,coupling2/(2*np.pi))
-#plt.plot(phi,coupling4/(2*np.pi))
+plt.plot(phi,coupling3/(2*np.pi))
+plt.plot(phi,coupling4/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
+plt.plot([-0.5,0.5],[0.04,0.04],'k')
+plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',r'$|\psi_{g}> \rightarrow |\psi_{2}>$',r'Threshold'],loc='upper right')
+plt.grid()
 #plt.xlabel(r'$\frac{\Phi}{2\pi}$')
 #plt.ylabel(r'Frequency [GHz]')
 #plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{1}>$',
@@ -212,12 +263,12 @@ for i,Phi in enumerate(phi):
 #            r'$|\psi_{g}>\rightarrow|\psi_{2}>$'], loc='upper right')
 #plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
 #plt.grid()
-#plt.show()
-
-#         ===========================================================
-#                           Plotting Eigenstate Composition
-#         ===========================================================
-
+plt.show()
+#
+##         ===========================================================
+##                           Plotting Eigenstate Composition
+##         ===========================================================
+#
 #for i in range(4):
 #    plt.plot(phi,EvecMat_gnd[:,i])
 #plt.grid()
@@ -226,7 +277,7 @@ for i,Phi in enumerate(phi):
 #plt.ylabel(r'Occupation Probability')
 #plt.xlabel(r'$\frac{\Phi}{2\pi}$')
 #plt.show()
-#
+##
 #for i in range(4):
 #    plt.plot(phi,EvecMat_first[:,i])
 #plt.title(r'Composition of First Excited State')
@@ -235,7 +286,7 @@ for i,Phi in enumerate(phi):
 #plt.ylabel(r'Occupation Probability')
 #plt.grid()
 #plt.show()
-#
+##
 #for i in range(4):
 #    plt.plot(phi,EvecMat_second[:,i])
 #plt.title(r'Composition of Second Excited State')
@@ -250,3 +301,53 @@ for i,Phi in enumerate(phi):
 #==============================================================================
 #                        Time Domain Measurements
 #==============================================================================
+
+#H,H0,Hint = TwoQubitNonLin_wInt(17.0,16.0,65e-15,48.8e-15,20.0,40.0e-15,0) # Phi = -0.15 is where the eigenstate modes are most decoupled
+#Evals,Evecs = H.eigenstates()
+#
+#
+#tlist = np.linspace(0,400,401)
+#
+#psi0 = Evecs[2]
+##psi0 = qt.tensor(qt.basis(n,1),qt.basis(n,0))
+#
+#gg_dm = qt.ket2dm(gg)
+#ge_dm = qt.ket2dm(ge)
+#eg_dm = qt.ket2dm(eg)
+#ee_dm = qt.ket2dm(ee)
+#
+#Pe1 = qt.tensor(qt.fock_dm(n,1),qt.qeye(n))
+#Pe2 = qt.tensor(qt.qeye(n),qt.fock_dm(n,1))
+#
+##swap = (Evecs[1]*Evecs[2].dag() + Evecs[2]*Evecs[1].dag())
+#
+#kappa1 = 0.01
+#kappa2 = 0.02
+#kappa3 = 0.05
+
+##e_ops = [gg_dm,ge_dm,eg_dm,ee_dm]
+#e_ops = [Evecs[1]*Evecs[1].dag(),Evecs[2]*Evecs[2].dag(),Evecs[3]*Evecs[3].dag(),Evecs[0]*Evecs[0].dag(),Pe1,Pe2]
+#c_ops = [np.sqrt(kappa1)*a,np.sqrt(kappa2)*b]
+##c_ops = []
+#
+#result = qt.mesolve(H,psi0,tlist,c_ops,e_ops,progress_bar=True)
+#
+#plt.plot(result.times,result.expect[0])
+#plt.plot(result.times,result.expect[1])
+#plt.plot(result.times,result.expect[2])
+#plt.plot(result.times,result.expect[3])
+##plt.plot(result.times,result.expect[4])
+##plt.plot(result.times,result.expect[5])
+#plt.xlabel(r'Time')
+#plt.ylabel(r'Occupation Probability')
+#plt.legend([r'$|\psi_{1}>$',r'$|\psi_{2}>$',r'$|\psi_3>$',r'$|\psi_g>$'])
+#plt.grid()
+#plt.show()
+#
+#plt.plot(result.times,result.expect[4])
+#plt.plot(result.times,result.expect[5])
+#plt.xlabel(r'Time')
+#plt.ylabel(r'Stuff')
+#plt.grid()
+#plt.show()
+
