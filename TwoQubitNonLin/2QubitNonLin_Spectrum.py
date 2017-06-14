@@ -105,12 +105,28 @@ phi = np.linspace(-0.5,0.5,501)
 
 #basislist = [gg,eg,ge,ee]
 
-Eval_mat1 = np.zeros((len(phi),n*n))
-Eval_mat2 = np.zeros((len(phi),n*n))
+Eval_mat1a = np.zeros((len(phi),n*n))
+Eval_mat2a = np.zeros((len(phi),n*n))
+Eval_mat3a = np.zeros((len(phi),n*n))
+
+Eval_mat1b = np.zeros((len(phi),n*n))
+Eval_mat2b = np.zeros((len(phi),n*n))
+Eval_mat3b = np.zeros((len(phi),n*n))
+
 coupling1 = np.zeros(len(phi))
 coupling2 = np.zeros(len(phi))
 coupling3 = np.zeros(len(phi))
 coupling4 = np.zeros(len(phi))
+coupling5 = np.zeros(len(phi))
+coupling6 = np.zeros(len(phi))
+coupling7 = np.zeros(len(phi))
+coupling8 = np.zeros(len(phi))
+coupling9 = np.zeros(len(phi))
+coupling10 = np.zeros(len(phi))
+
+Coupling_matA = np.zeros((len(phi),10))
+Coupling_matB = np.zeros((len(phi),10))
+
 
 
 #EvecMat_gnd = np.zeros((len(phi),4))
@@ -134,31 +150,29 @@ for i,Phi in enumerate(phi):
     evals2,evecs = H0.eigenstates()    
         
     gnd = evecs[0]
-###    gnd.tidyup(atol=1e-3)
-###    gnd.unit()
     first = evecs[1]
-###    first.tidyup(atol=1e-3)
-###    first.unit()
     second = evecs[2]
-##    second.tidyup(atol=1e-3)
-##    second.unit()
     third = evecs[3]
-##    third.tidyup(atol=1e-3)
-##    third.unit()
     fourth = evecs[4]
-##    fourth.tidyup(atol=1e-3)
-##    fourth.unit()
+    fifth = evecs[5]
+    sixth = evecs[6]
     
     gnd_to_first = first*gnd.dag()
     gnd_to_second = second*gnd.dag()
-#    first_to_second = second*first.dag()    
-#    gnd_to_third = third*gnd.dag()
+    
     first_to_third = third*first.dag()
-#    second_to_third = third*second.dag()
-#    gnd_to_fourth = fourth*gnd.dag()
-#    first_to_fourth = fourth*first.dag()
+    first_to_fourth = fourth*first.dag()
+    first_to_fifth = fifth*first.dag()
+    first_to_sixth = sixth*first.dag()
+    
+    second_to_third = third*second.dag()
     second_to_fourth = fourth*second.dag()
-#    third_to_fourth = fourth*third.dag()
+    second_to_fifth = fifth*second.dag()
+    second_to_sixth = sixth*second.dag()
+    
+    Transition_List = [gnd_to_first,gnd_to_second,
+                       first_to_third,first_to_fourth,first_to_fifth,first_to_sixth,
+                       second_to_third,second_to_fourth,second_to_fifth,second_to_sixth]
     
 #    for j in range(4):
 #        Number_gnd = basislist[j].dag()*gnd
@@ -168,8 +182,13 @@ for i,Phi in enumerate(phi):
 #        EvecMat_first[i,j] = np.abs(Number_first[0,0])**2
 #        EvecMat_second[i,j] = np.abs(Number_second[0,0])**2
 
-    Eval_mat1[i,:] = evals1
-    Eval_mat2[i,:] = evals1
+    Eval_mat1a[i,:] = evals1 - evals1[0]
+    Eval_mat2a[i,:] = evals1 - evals1[1]
+    Eval_mat3a[i,:] = evals1 - evals1[2]
+    
+    Eval_mat1b[i,:] = evals1 - evals1[0]
+    Eval_mat2b[i,:] = evals1 - evals1[1]
+    Eval_mat3b[i,:] = evals1 - evals1[2]
 
     
 #    coupling[i] = np.abs(qt.expect(Hint,gnd_to_fourth))
@@ -182,19 +201,52 @@ for i,Phi in enumerate(phi):
 #    coupling[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
 #    coupling2[i] = np.abs(qt.expect(Hopping_b,first_to_second))
 #    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
-    coupling1[i] = np.abs(qt.expect(Hopping_a,gnd_to_first))
-    coupling2[i] = np.abs(qt.expect(Hopping_a,gnd_to_second))
-    coupling3[i] = np.abs(qt.expect(Hopping_b,gnd_to_first))
-    coupling4[i] = np.abs(qt.expect(Hopping_b,gnd_to_second))
+    for j in range(10):
+        Coupling_matA[i,j] = np.abs(qt.expect(Hopping_a,Transition_List[j]))
+        Coupling_matB[i,j] = np.abs(qt.expect(Hopping_b,Transition_List[j]))
     
-    if coupling1[i]/(2*np.pi) < 0.04:
-        Eval_mat1[i,1] = np.nan
-    if coupling2[i]/(2*np.pi) < 0.04:
-        Eval_mat1[i,2] = np.nan
-    if coupling3[i]/(2*np.pi) < 0.04:
-        Eval_mat2[i,1] = np.nan
-    if coupling4[i]/(2*np.pi) < 0.04:
-        Eval_mat2[i,2] = np.nan
+    if Coupling_matA[i,0]/(2*np.pi) < 0.1: 
+        Eval_mat1a[i,1] = np.nan
+    if Coupling_matA[i,1]/(2*np.pi) < 0.1:
+        Eval_mat1a[i,2] = np.nan
+    if Coupling_matA[i,2]/(2*np.pi) < 0.1:
+        Eval_mat2a[i,3] = np.nan
+    if Coupling_matA[i,3]/(2*np.pi) < 0.1:
+        Eval_mat2a[i,4] = np.nan
+    if Coupling_matA[i,4]/(2*np.pi) < 0.1:
+        Eval_mat2a[i,5] = np.nan
+    if Coupling_matA[i,5]/(2*np.pi) < 0.1:
+        Eval_mat2a[i,6] = np.nan
+    if Coupling_matA[i,6]/(2*np.pi) < 0.1:
+        Eval_mat3a[i,3] = np.nan
+    if Coupling_matA[i,7]/(2*np.pi) < 0.1:
+        Eval_mat3a[i,4] = np.nan
+    if Coupling_matA[i,8]/(2*np.pi) < 0.1:
+        Eval_mat3a[i,5] = np.nan
+    if Coupling_matA[i,9]/(2*np.pi) < 0.1:
+        Eval_mat3a[i,6] = np.nan
+        
+    if Coupling_matB[i,0]/(2*np.pi) < 0.1: 
+        Eval_mat1b[i,1] = np.nan
+    if Coupling_matB[i,1]/(2*np.pi) < 0.1:
+        Eval_mat1b[i,2] = np.nan
+    if Coupling_matB[i,2]/(2*np.pi) < 0.1:
+        Eval_mat2b[i,3] = np.nan
+    if Coupling_matB[i,3]/(2*np.pi) < 0.1:
+        Eval_mat2b[i,4] = np.nan
+    if Coupling_matB[i,4]/(2*np.pi) < 0.1:
+        Eval_mat2b[i,5] = np.nan
+    if Coupling_matB[i,5]/(2*np.pi) < 0.1:
+        Eval_mat2b[i,6] = np.nan
+    if Coupling_matB[i,6]/(2*np.pi) < 0.1:
+        Eval_mat3b[i,3] = np.nan
+    if Coupling_matB[i,7]/(2*np.pi) < 0.1:
+        Eval_mat3b[i,4] = np.nan
+    if Coupling_matB[i,8]/(2*np.pi) < 0.1:
+        Eval_mat3b[i,5] = np.nan
+    if Coupling_matB[i,9]/(2*np.pi) < 0.1:
+        Eval_mat3b[i,6] = np.nan
+
 #
 ##         ===========================================================
 ##                            Plotting Energy Levels
@@ -207,21 +259,40 @@ for i,Phi in enumerate(phi):
 #plt.title(r'Transition Energies of Nonlinear Coupling, $H_{0}$')
 #plt.show()
 #
-for i in range(3):
-    plt.plot(phi,(Eval_mat1[:,i]-Eval_mat1[:,0])/(2*np.pi))
+for i in range(1,3):
+    if i==1:
+        plt.plot(phi,(Eval_mat1a[:,i])/(2*np.pi),'b',label=r'$|\psi_{g}> \rightarrow 1-Manifold$')
+    else:
+        plt.plot(phi,(Eval_mat1a[:,i])/(2*np.pi),'b')
+    plt.plot(phi,(Eval_mat1b[:,i])/(2*np.pi),'b')
+for j in range(3,6):
+    if j ==3:
+        plt.plot(phi,(Eval_mat2a[:,j])/(2*np.pi),'r--',label=r'$|\psi_{1}> \rightarrow 2-Manifold$')
+    else:
+        plt.plot(phi,(Eval_mat2a[:,j])/(2*np.pi),'r--')
+    plt.plot(phi,(Eval_mat2b[:,j])/(2*np.pi),'r--')
+for k in range(3,6):
+    if k == 3:
+        plt.plot(phi,(Eval_mat3a[:,k])/(2*np.pi),'g-.',label=r'$|\psi_{2}> \rightarrow 2-Manifold$')    
+    else:
+        plt.plot(phi,(Eval_mat3a[:,k])/(2*np.pi),'g-.')
+    plt.plot(phi,(Eval_mat3b[:,k])/(2*np.pi),'g-.')
 plt.ylabel(r'Freqnecy [GHz]')
 plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.title(r'Transition Energies of Nonlinear Coupling, $<\psi_{j}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_i>$')
+plt.title(r'Transition Energies of Nonlinear Coupling')
+#plt.legend[]
 plt.grid()
+plt.legend(loc='lower right')
 plt.show()
-
-for i in range(3):
-    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
-plt.ylabel(r'Freqnecy [GHz]')
-plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.title(r'Transition Energies of Nonlinear Coupling, $|<\psi_{i}|\mathbb{1}\otimes(b+b^{\dagger})|\psi_{j}>|$')
-plt.grid()
-plt.show()
+    
+#
+#for i in range(3):
+#    plt.plot(phi,(Eval_mat2[:,i]-Eval_mat2[:,0])/(2*np.pi))
+#plt.ylabel(r'Freqnecy [GHz]')
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.title(r'Transition Energies of Nonlinear Coupling, $|<\psi_{i}|\mathbb{1}\otimes(b+b^{\dagger})|\psi_{j}>|$')
+#plt.grid()
+#plt.show()
 
 #for i in range(n*n-1):
 #    plt.plot(phi,coupling_mat1[:,i]/(2*np.pi))
@@ -238,32 +309,99 @@ plt.show()
 ##                               Plotting Coupling
 ##         ===========================================================
 #
-plt.plot(phi,coupling1/(2*np.pi))
-plt.plot(phi,coupling2/(2*np.pi))
+for i in range(2):
+    plt.plot(phi,Coupling_matA[:,i]/(2*np.pi))
 plt.ylabel(r'Frequency [GHz]')
 plt.xlabel(r'$\frac{\Phi}{2\pi}$')
 plt.title(r'$<\psi_{i}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_{j}>$')
-plt.plot([-0.5,0.5],[0.04,0.04],'k')
-plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',r'$|\psi_{g}> \rightarrow |\psi_{2}>$',r'Threshold'],loc='upper right')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',
+            r'$|\psi_{g}> \rightarrow |\psi_{2}>$',
+            r'Threshold'],loc='upper right')
+plt.grid()
+plt.show()
+for i in range(2,6):
+    plt.plot(phi,Coupling_matA[:,i]/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$<\psi_{i}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{1}> \rightarrow |\psi_{3}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{4}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{5}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{6}>$',
+            r'Threshold'],loc='upper right')
+plt.grid()
+plt.show()
+for i in range(6,10):
+    plt.plot(phi,Coupling_matA[:,i]/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$<\psi_{i}|(a+a^{\dagger})\otimes \mathbb{1}|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{2}> \rightarrow |\psi_{3}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{4}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{5}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{6}>$',
+            r'Threshold'],loc='upper right')
 plt.grid()
 plt.show()
 
-plt.plot(phi,coupling3/(2*np.pi))
-plt.plot(phi,coupling4/(2*np.pi))
+for i in range(2):
+    plt.plot(phi,Coupling_matB[:,i]/(2*np.pi))
 plt.ylabel(r'Frequency [GHz]')
 plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
-plt.plot([-0.5,0.5],[0.04,0.04],'k')
-plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',r'$|\psi_{g}> \rightarrow |\psi_{2}>$',r'Threshold'],loc='upper right')
+plt.title(r'$<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',
+            r'$|\psi_{g}> \rightarrow |\psi_{2}>$',
+            r'Threshold'],loc='upper right')
 plt.grid()
-#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
-#plt.ylabel(r'Frequency [GHz]')
-#plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{1}>$',
-#            r'$|\psi_{1}>\rightarrow|\psi_{2}>$',
-#            r'$|\psi_{g}>\rightarrow|\psi_{2}>$'], loc='upper right')
-#plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
-#plt.grid()
 plt.show()
+for i in range(2,6):
+    plt.plot(phi,Coupling_matB[:,i]/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{1}> \rightarrow |\psi_{3}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{4}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{5}>$',
+            r'$|\psi_{1}> \rightarrow |\psi_{6}>$',
+            r'Threshold'],loc='upper right')
+plt.grid()
+plt.show()
+for i in range(6,10):
+    plt.plot(phi,Coupling_matB[:,i]/(2*np.pi))
+plt.ylabel(r'Frequency [GHz]')
+plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+plt.title(r'$<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>$')
+plt.plot([-0.5,0.5],[0.1,0.1],'k')
+plt.legend([r'$|\psi_{2}> \rightarrow |\psi_{3}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{4}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{5}>$',
+            r'$|\psi_{2}> \rightarrow |\psi_{6}>$',
+            r'Threshold'],loc='upper right')
+plt.grid()
+plt.show()
+
+#
+#plt.plot(phi,coupling3/(2*np.pi))
+#plt.plot(phi,coupling4/(2*np.pi))
+#plt.ylabel(r'Frequency [GHz]')
+#plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+#plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
+#plt.plot([-0.5,0.5],[0.04,0.04],'k')
+#plt.legend([r'$|\psi_{g}> \rightarrow |\psi_{1}>$',r'$|\psi_{g}> \rightarrow |\psi_{2}>$',r'Threshold'],loc='upper right')
+#plt.grid()
+##plt.xlabel(r'$\frac{\Phi}{2\pi}$')
+##plt.ylabel(r'Frequency [GHz]')
+##plt.legend([r'$|\psi_{g}>\rightarrow |\psi_{1}>$',
+##            r'$|\psi_{1}>\rightarrow|\psi_{2}>$',
+##            r'$|\psi_{g}>\rightarrow|\psi_{2}>$'], loc='upper right')
+##plt.title(r'$|<\psi_{i}|\mathbb{1}\otimes (b+b^{\dagger})|\psi_{j}>|$')
+##plt.grid()
+#plt.show()
 #
 ##         ===========================================================
 ##                           Plotting Eigenstate Composition
